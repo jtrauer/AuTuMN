@@ -235,10 +235,10 @@ def add_standard_victoria_params(params, region):
         {
             "param_name": "ifr_multiplier",  # Less to constrain this, so just to propagate some uncertainty
             "distribution": "trunc_normal",
-            "distri_params": [1.0, 0.3 if region in Region.VICTORIA_RURAL else 1.0],
+            "distri_params": [1.0, 0.3 if region in Region.VICTORIA_RURAL else 1.5],
             "trunc_range": [
                 0.33 if region in Region.VICTORIA_RURAL else 0.25,
-                3.0 if region in Region.VICTORIA_RURAL else 4.0,
+                3.0 if region in Region.VICTORIA_RURAL else 5.0,
             ],
         },
         {
@@ -286,6 +286,12 @@ def add_standard_victoria_params(params, region):
             "distri_mean": 0.8,
             "distri_ci": [0.4, 0.95],
         },
+        {
+            "param_name": "compartment_periods.hospital_late",
+            "distribution": "trunc_normal",
+            "distri_params": [18.4, 9.],
+            "trunc_range": [4.0, np.inf],
+        }
     ]
 
 
