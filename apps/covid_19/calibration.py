@@ -99,6 +99,7 @@ def run_calibration_chain(
         run_id,
         num_chains,
         param_set_name=region,
+        adaptive_proposal=False,
     )
     logger.info("Starting calibration.")
     calib.run_fitting_algorithm(
