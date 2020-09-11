@@ -288,9 +288,8 @@ def add_standard_victoria_params(params, region):
         },
         {
             "param_name": "compartment_periods.hospital_late",
-            "distribution": "trunc_normal",
-            "distri_params": [18.4, 9.],
-            "trunc_range": [4.0, np.inf],
+            "distribution": "uniform",
+            "distri_params": [5., 25.],
         }
     ]
 
