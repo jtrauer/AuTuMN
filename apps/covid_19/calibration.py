@@ -43,7 +43,7 @@ BASE_CALIBRATION_PARAMS = [
     {
         "param_name": "compartment_periods_calculated.active.total_period",
         "distribution": "trunc_normal",
-        "distri_params": [6.5, 0.77],
+        "distri_params": [6.5, 2.],
         "trunc_range": [1.0, np.inf],
     },
 ]
@@ -235,7 +235,7 @@ def add_standard_victoria_params(params, region):
         {
             "param_name": "ifr_multiplier",  # Less to constrain this, so just to propagate some uncertainty
             "distribution": "trunc_normal",
-            "distri_params": [1.0, 0.3 if region in Region.VICTORIA_RURAL else 1.5],
+            "distri_params": [1.0, 0.3 if region in Region.VICTORIA_RURAL else 2.],
             "trunc_range": [
                 0.33 if region in Region.VICTORIA_RURAL else 0.25,
                 3.0 if region in Region.VICTORIA_RURAL else 5.0,
@@ -287,10 +287,15 @@ def add_standard_victoria_params(params, region):
             "distri_ci": [0.4, 0.95],
         },
         {
+            "param_name": "compartment_periods.hospital_early",
+            "distribution": "uniform",
+            "distri_params": [5., 25.],
+        },
+        {
             "param_name": "compartment_periods.hospital_late",
             "distribution": "uniform",
             "distri_params": [5., 25.],
-        }
+        },
     ]
 
 
