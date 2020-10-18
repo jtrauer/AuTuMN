@@ -57,6 +57,7 @@ mobility:
         - 0.35
         - 0.35
         - 1.
+  square_mobility_effect: true
 
 importation:
   props_by_age: null
