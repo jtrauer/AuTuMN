@@ -129,6 +129,7 @@ def _plot_uncertainty(
         & (uncertainty_df["time"] <= x_up)
         & (uncertainty_df["time"] >= x_low)
     )
+
     df = uncertainty_df[mask]
     times = df.time.unique()
     quantiles = {}
@@ -136,15 +137,32 @@ def _plot_uncertainty(
     for q in quantile_vals:
         mask = df["quantile"] == q
         quantiles[q] = df[mask]["value"].tolist()
+
+    #import streamlit as st
+
+    #st.write(times)
     q_keys = sorted([float(k) for k in quantiles.keys()])
     num_quantiles = len(q_keys)
     half_length = num_quantiles // 2
+    # if overlay_uncertainty:
+    #     for i in range(start_quantile, half_length):
+    #         color = colors[i]
+    #         start_key = q_keys[i]
+    #         end_key = q_keys[-(i + 1)]
+    #         axis.fill_between(times, quantiles[start_key], quantiles[end_key], facecolor=color)
+
     if overlay_uncertainty:
         for i in range(start_quantile, half_length):
             color = colors[i]
             start_key = q_keys[i]
             end_key = q_keys[-(i + 1)]
-            axis.fill_between(times, quantiles[start_key], quantiles[end_key], facecolor=color)
+            axis.plot(times, quantiles[start_key], quantiles[end_key])
+            pyplot.legend(q_keys, loc="best")
+
+    # df.index = df.time
+    # axis.plot(df.index, df.value)
+    # pyplot.legend(df.columns, loc="best")
+    # change_xaxis_to_date(axes, REF_DATE)
 
     if num_quantiles % 2:
         q_key = q_keys[half_length]
@@ -176,6 +194,7 @@ def plot_multi_output_timeseries_with_uncertainty(
 
     i_col = 0
     i_row = 0
+
     for output_name in output_names:
         targets = {k: v for k, v in all_targets.items() if v["output_key"] == output_name}
         ax = fig.add_subplot(spec[i_row, i_col])
