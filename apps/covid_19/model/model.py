@@ -538,7 +538,9 @@ def build_model(params: dict) -> StratifiedModel:
     """
     if params.stratify_by_infection_history:
         # waning immunity makes recovered individuals transition to the 'experienced' stratum
-        stratification_adjustments = {"immunity_loss_rate": {"naive": 0.0, "experienced": 1.0}}
+        stratification_adjustments = {
+            "immunity_loss_rate": {"naive": 0.0, "experienced": 1.0, "vaccinated": 1.0}
+        }
         # adjust parameters defining progression from early exposed to late exposed to obtain the requested proportion
         for agegroup in agegroup_strata:  # e.g. '0'
             # collect existing rates of progressions for symptomatic vs non-symptomatic
@@ -553,7 +555,7 @@ def build_model(params: dict) -> StratifiedModel:
             sympt_multiplier = params.rel_prop_symptomatic_experienced
             # multiplier for asymptomatic rate is 1 + rate_sympt / rate_non_sympt * (1 - sympt_multiplier)
             # in order to preserve aggregated exit flow
-            non_sympt_multiplier = 1 + rate_sympt / rate_non_sympt * (1.0 - sympt_multiplier)
+            non_sympt_multiplier = 1.0 + rate_sympt / rate_non_sympt * (1.0 - sympt_multiplier)
 
             # create adjustment requests
             for clinical_stratum in clinical_strata:
@@ -564,19 +566,21 @@ def build_model(params: dict) -> StratifiedModel:
                     stratification_adjustments[param_name] = {
                         "naive": 1.0,
                         "experienced": non_sympt_multiplier,
+                        "vaccinated": non_sympt_multiplier,
                     }
                 else:
                     stratification_adjustments[param_name] = {
                         "naive": 1.0,
                         "experienced": sympt_multiplier,
+                        "vaccinated": sympt_multiplier,
                     }
 
         # Stratify the model using the SUMMER stratification function
         model.stratify(
             "history",
-            ["naive", "experienced"],
+            ["naive", "experienced", "vaccinated"],
             [Compartment.SUSCEPTIBLE, Compartment.EARLY_EXPOSED],
-            comp_split_props={"naive": 1.0, "experienced": 0.0},
+            comp_split_props={"naive": 1.0, "experienced": 0.0, "vaccinated": 0.0},
             flow_adjustments=stratification_adjustments,
         )
 

@@ -2,6 +2,10 @@
 ---
 parent: apps/covid_19/params.yml
 
+stratify_by_infection_history: true
+rel_prop_symptomatic_experienced: 0.
+
+
 contact_rate: 0.02
 seasonal_force: -0.2
 
