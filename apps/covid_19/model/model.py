@@ -537,10 +537,15 @@ def build_model(params: dict) -> StratifiedModel:
     Infection history stratification
     """
     if params.stratify_by_infection_history:
+        strata = ["naive", "experienced"]
         # waning immunity makes recovered individuals transition to the 'experienced' stratum
         stratification_adjustments = {
-            "immunity_loss_rate": {"naive": 0.0, "experienced": 1.0, "vaccinated": 1.0}
+            "immunity_loss_rate": {"naive": 0.0, "experienced": 1.0}
         }
+        if params.vaccination_rate:
+            stratification_adjustments["immunity_loss_rate"].update({"vaccinated": 1.0})
+            strata.append("vaccinated")
+
         # adjust parameters defining progression from early exposed to late exposed to obtain the requested proportion
         for agegroup in agegroup_strata:  # e.g. '0'
             # collect existing rates of progressions for symptomatic vs non-symptomatic
@@ -566,38 +571,51 @@ def build_model(params: dict) -> StratifiedModel:
                     stratification_adjustments[param_name] = {
                         "naive": 1.0,
                         "experienced": non_sympt_multiplier,
-                        "vaccinated": non_sympt_multiplier,
                     }
+                    if params.vaccination_rate:
+                        stratification_adjustments[param_name].update(
+                            {"vaccinated": non_sympt_multiplier}
+                        )
                 else:
                     stratification_adjustments[param_name] = {
                         "naive": 1.0,
                         "experienced": sympt_multiplier,
-                        "vaccinated": sympt_multiplier,
                     }
+                    if params.vaccination_rate:
+                        stratification_adjustments[param_name].update(
+                            {"vaccinated": sympt_multiplier}
+                        )
 
         # Stratify the model using the SUMMER stratification function
         model.stratify(
             "history",
-            ["naive", "experienced", "vaccinated"],
+            strata,
             [Compartment.SUSCEPTIBLE, Compartment.EARLY_EXPOSED],
             comp_split_props={"naive": 1.0, "experienced": 0.0, "vaccinated": 0.0},
             flow_adjustments=stratification_adjustments,
         )
 
-        model.add_extra_flow(
-            flow={
-                "type": Flow.STANDARD,
-                "origin": "susceptible",
-                "to": "susceptible",
-                "parameter": "contact_rate",
-            },
-            source_strata={
-                "history": "naive",
-            },
-            dest_strata={
-                "history": "vaccinated",
-            },
-        )
+        if params.vaccination_rate:
+
+            # Can replace this with a realistic vaccination rate function later
+            def get_vaccination_function():
+                return lambda time: params.vaccination_rate if time > 300. else 0.
+
+            model.time_variants["vaccination_rate"] = get_vaccination_function()
+            model.add_extra_flow(
+                flow={
+                    "type": Flow.STANDARD,
+                    "origin": "susceptible",
+                    "to": "susceptible",
+                    "parameter": "vaccination_rate",
+                },
+                source_strata={
+                    "history": "naive",
+                },
+                dest_strata={
+                    "history": "vaccinated",
+                },
+            )
 
     """
     Stratify model by Victorian subregion (used for Victorian cluster model).

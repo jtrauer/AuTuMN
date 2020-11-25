@@ -11,6 +11,8 @@ universal_death_rate: 0. # Compulsory parameter for all models, even though ther
 infectious_seed: 10 # Initial condition for infectious
 contact_rate: 0.03 # Routinely calibrated, see respective calibration files
 
+vaccination_rate: null
+
 # Integration times
 time:
   start: 40.
