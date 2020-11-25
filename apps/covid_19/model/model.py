@@ -357,7 +357,7 @@ def build_model(params: dict) -> StratifiedModel:
         )
     }
 
-    # Now we want to convert these death proprotions into flow rates.
+    # Now we want to convert these death proportions into flow rates.
     # These flow rates are the death rates for hospitalised patients in ICU and non-ICU.
     # We assume everyone who dies does so at the end of their time in the "late active" compartment.
     # We split the flow rate out of "late active" into a death or recovery flow, based on the relative death proportion.
@@ -582,6 +582,21 @@ def build_model(params: dict) -> StratifiedModel:
             [Compartment.SUSCEPTIBLE, Compartment.EARLY_EXPOSED],
             comp_split_props={"naive": 1.0, "experienced": 0.0, "vaccinated": 0.0},
             flow_adjustments=stratification_adjustments,
+        )
+
+        model.add_extra_flow(
+            flow={
+                "type": Flow.STANDARD,
+                "origin": "susceptible",
+                "to": "susceptible",
+                "parameter": "contact_rate",
+            },
+            source_strata={
+                "history": "naive",
+            },
+            dest_strata={
+                "history": "vaccinated",
+            },
         )
 
     """
