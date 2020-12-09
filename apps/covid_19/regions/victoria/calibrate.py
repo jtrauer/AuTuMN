@@ -155,40 +155,49 @@ def get_target_outputs(start_date, end_date):
     targets = load_targets("covid_19", Region.VICTORIA)
 
     # Total Victorian notifications for each time point
-    accum_notification_times, accum_notification_values = \
+    notification_times, notification_values = \
         get_truncated_output(targets["notifications"], start_date, end_date)
     target_outputs = [
         {
             "output_key": "notifications",
-            "years": accum_notification_times,
-            "values": accum_notification_values,
+            "years": notification_times,
+            "values": notification_values,
             "loglikelihood_distri": "normal",
         }
     ]
 
-    accum_death_times, accum_death_values = \
-        get_truncated_output(targets["infection_deaths"], start_date, end_date)
-    target_outputs += [
-        {
-            "output_key": "infection_deaths",
-            "years": accum_death_times,
-            "values": accum_death_values,
-            "loglikelihood_distri": "normal",
-        }
-    ]
+    # death_times, death_values = \
+    #     get_truncated_output(targets["infection_deaths"], start_date, end_date)
+    # target_outputs += [
+    #     {
+    #         "output_key": "infection_deaths",
+    #         "years": death_times,
+    #         "values": death_values,
+    #         "loglikelihood_distri": "normal",
+    #     }
+    # ]
 
-    # Accumulated notifications at the end date for all clusters
-    for cluster in CLUSTERS:
-        targets.update(base.accumulate_target(targets, "notifications", category=f"_for_cluster_{cluster}"))
-        output_key = f"accum_notifications_for_cluster_{cluster}"
-        target_outputs += [
-            {
-                "output_key": output_key,
-                "years": [targets[output_key]["times"][-1]],
-                "values": [targets[output_key]["values"][-1]],
-                "loglikelihood_distri": "normal",
-            }
-        ]
+    print(notification_times)
+    print(len(notification_times))
+    print(notification_values)
+    print(len(notification_values))
+    # print(death_values)
+
+    # # Accumulated notifications at the end date for all clusters
+    # for cluster in CLUSTERS:
+    #     output_key = f"notifications_for_cluster_{cluster}"
+    #     max_value_index = notification_values.index(max(notification_values))
+    #     target_outputs += [
+    #         {
+    #             "output_key": output_key,
+    #             "years": targets[output_key]["times"][max_value_index - 2: max_value_index + 2],
+    #             "values": targets[output_key]["values"][max_value_index - 2: max_value_index + 2],
+    #             "loglikelihood_distri": "normal",
+    #         }
+    #     ]
+    #     print("\n")
+    #     print(cluster)
+    #     print(targets[output_key]["values"][max_value_index - 2: max_value_index + 2])
 
         # # Accumulated other indicators at the end date for Metro clusters only
         # if cluster.replace("_", "-") in Region.VICTORIA_METRO:
