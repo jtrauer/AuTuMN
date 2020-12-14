@@ -3,7 +3,6 @@ Streamlit web UI for plotting MCMC outputs
 """
 import streamlit as st
 import os
-import yaml
 
 from autumn.tool_kit.params import load_targets
 from autumn import db
@@ -35,17 +34,16 @@ def run_dashboard():
     mcmc_params = db.load.load_mcmc_params_tables(calib_dirpath)
     targets = load_targets(app_name, region_name)
 
-    try:
-        with open(calib_dirpath + "\\priors-1.yml") as file:
-            priors = yaml.load(file, Loader=yaml.FullLoader)
-    except:
-        st.write("Check if priors-1.yml exists in the output folder")
-
     plotter = StreamlitPlotter(targets)
     plot_type = st.sidebar.selectbox("Select plot type", list(PLOT_FUNCS.keys()))
     plot_func = PLOT_FUNCS[plot_type]
 
     plot_func(
-        plotter, calib_dirpath, mcmc_tables, mcmc_params, targets, app_name, region_name, priors
+        plotter,
+        calib_dirpath,
+        mcmc_tables,
+        mcmc_params,
+        targets,
+        app_name,
+        region_name,
     )
-
