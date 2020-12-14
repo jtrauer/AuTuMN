@@ -5,6 +5,10 @@ from dash import selectors
 from math import ceil
 import matplotlib.pyplot as pyplot
 
+
+from apps.covid_19.model.preprocess.mixing_matrix.microdistancing import get_microdistancing_funcs
+from apps.covid_19.model.parameters import MicroDistancingFunc, EmpiricMicrodistancingParams
+
 PLOT_FUNCS = {}
 
 
@@ -21,17 +25,48 @@ def multi_country_uncertainty(
     label_font_size = st.sidebar.slider("Label font size", 1, 30, 10)
     uncertainty_df = []
 
+    # Hard coded for PHL and sub regions
+    microdistancing_funcs = get_microdistancing_funcs(
+        {
+            "behaviour": MicroDistancingFunc(
+                function_type="empiric",
+                parameters=EmpiricMicrodistancingParams(
+                    max_effect=0.28, times=[75.0, 314.0], values=[0.0, 1.0]
+                ),
+            )
+        },
+        ["other_locations", "school", "work", "home"],
+        True,
+    )
+
     for i_region in range(len(mcmc_tables)):
-        uncertainty_df.append(get_uncertainty_df(calib_dir_path[i_region], mcmc_tables[i_region], targets))
+        uncertainty_df.append(
+            get_uncertainty_df(calib_dir_path[i_region], mcmc_tables[i_region], targets[i_region])
+        )
 
         if i_region == 0:
             available_outputs = [o["output_key"] for o in targets[i_region].values()]
             chosen_output = st.sidebar.selectbox("Select calibration target", available_outputs)
+            if chosen_output == "notifications":
+                chosen_micro = st.sidebar.checkbox("Overlay micro distance")
             x_min = round(min(uncertainty_df[0]["time"]))
             x_max = round(max(uncertainty_df[0]["time"]))
             x_low, x_up = selectors.create_xrange_selector(x_min, x_max)
             available_scenarios = uncertainty_df[0]["scenario"].unique()
             selected_scenarios = st.multiselect("Select scenarios", available_scenarios)
+
+    # st.write(microdistancing_funcs["work"](x_up))
+    md_val = [microdistancing_funcs["work"](each) for each in range(x_low, x_up)]
+    md_x = [each for each in range(x_low, x_up)]
+    # st.write(md_x)
+    fig, ax = pyplot.subplots()
+    x = [1, 2, 3]
+    y = [1, 2, 3]
+    # pyplot.plot(x, y)
+    ax.plot(x, y)
+    # st.write(pyplot.plot(x, y))
+    # spec = fig.add_gridspec(ncols=1, nrows=1)
+    # pyplot.show()
 
     plots.uncertainty.plots.plot_multicountry_timeseries_with_uncertainty(
         plotter,
