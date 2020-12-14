@@ -4,6 +4,7 @@ Plotting projection uncertainty.
 from typing import List
 import logging
 import datetime
+import numpy as np
 
 import pandas as pd
 from math import ceil
@@ -43,7 +44,7 @@ def plot_timeseries_with_uncertainty(
     ylab=None,
     x_axis_to_date=True,
     start_quantile=0,
-    sc_colors=None
+    sc_colors=None,
 ):
     """
     Plots the uncertainty timeseries for one or more scenarios.
@@ -79,7 +80,7 @@ def plot_timeseries_with_uncertainty(
             scenario_colors,
             overlay_uncertainty=overlay_uncertainty,
             start_quantile=start_quantile,
-            zorder=i+1
+            zorder=i + 1,
         )
 
     # Add plot targets
@@ -133,7 +134,7 @@ def _plot_uncertainty(
     overlay_uncertainty=True,
     start_quantile=0,
     zorder=1,
-    linestyle='solid'
+    linestyle="solid",
 ):
     """Plots the uncertainty values in the provided dataframe to an axis"""
     mask = (
@@ -157,7 +158,9 @@ def _plot_uncertainty(
             color = colors[i - start_quantile]
             start_key = q_keys[i]
             end_key = q_keys[-(i + 1)]
-            axis.fill_between(times, quantiles[start_key], quantiles[end_key], facecolor=color, zorder=zorder)
+            axis.fill_between(
+                times, quantiles[start_key], quantiles[end_key], facecolor=color, zorder=zorder
+            )
 
     if num_quantiles % 2:
         q_key = q_keys[half_length]
@@ -231,6 +234,7 @@ def plot_multicountry_timeseries_with_uncertainty(
     x_low=0.0,
     x_up=2000.0,
     n_xticks=None,
+    microdistancing_funcs=None,
     title_font_size=12,
     label_font_size=10,
 ):
@@ -244,10 +248,14 @@ def plot_multicountry_timeseries_with_uncertainty(
     fig = pyplot.figure(constrained_layout=True, figsize=(n_cols * 7, n_rows * 5))  # (w, h)
     spec = fig.add_gridspec(ncols=n_cols, nrows=n_rows)
 
+    md_val = [microdistancing_funcs["work"](each) for each in range(x_low, x_up)]
+    md_x = [each for each in range(x_low, x_up)]
+
     i_row, i_col = 0, 0
     for i_region, region in regions.items():
         targets = {k: v for k, v in all_targets[i_region].items() if v["output_key"] == output_name}
         ax = fig.add_subplot(spec[i_row, i_col])
+        
         plot_timeseries_with_uncertainty(
             plotter,
             uncertainty_df[i_region],
@@ -262,6 +270,8 @@ def plot_multicountry_timeseries_with_uncertainty(
             title_font_size=title_font_size,
             label_font_size=label_font_size,
         )
+
+        plot_micro_distance(ax, md_val, md_x)
 
         # Uncomment the following code for the custom titles for the Philippines application plot
         # if i_region == 0:
@@ -417,3 +427,11 @@ def _get_target_values(targets: dict, output_name: str):
     values = output_config["values"]
     times = output_config["times"]
     return values, times
+
+
+def plot_micro_distance(axis, values: List[float], times: List[int]):
+
+    values = np.array(values)
+    values = values[np.newaxis, :]
+    axis.pcolorfast(axis.get_xlim(), axis.get_ylim(), values, cmap="Greens", alpha=0.3)
+

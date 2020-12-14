@@ -55,18 +55,7 @@ def multi_country_uncertainty(
             available_scenarios = uncertainty_df[0]["scenario"].unique()
             selected_scenarios = st.multiselect("Select scenarios", available_scenarios)
 
-    # st.write(microdistancing_funcs["work"](x_up))
-    md_val = [microdistancing_funcs["work"](each) for each in range(x_low, x_up)]
-    md_x = [each for each in range(x_low, x_up)]
-    # st.write(md_x)
-    fig, ax = pyplot.subplots()
-    x = [1, 2, 3]
-    y = [1, 2, 3]
-    # pyplot.plot(x, y)
-    ax.plot(x, y)
-    # st.write(pyplot.plot(x, y))
-    # spec = fig.add_gridspec(ncols=1, nrows=1)
-    # pyplot.show()
+
 
     plots.uncertainty.plots.plot_multicountry_timeseries_with_uncertainty(
         plotter,
@@ -79,6 +68,7 @@ def multi_country_uncertainty(
         x_low,
         x_up,
         n_xticks,
+        microdistancing_funcs,
         title_font_size=title_font_size,
         label_font_size=label_font_size,
     )
