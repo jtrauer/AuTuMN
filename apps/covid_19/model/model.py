@@ -688,6 +688,14 @@ def build_model(params: dict) -> StratifiedModel:
             is_importation_active,
             modelled_abs_detection_proportion_imported,
         )
+        notification_by_age_funcs = {}
+        for agegroup in agegroup_strata:
+            notification_by_age_funcs[f"notifications_agegroup_{agegroup}"] = \
+                outputs.get_calc_notifications_covid(
+                    is_importation_active,
+                    modelled_abs_detection_proportion_imported,
+                    request_stratum=f"agegroup_{agegroup}"
+                )
         local_notification_func = outputs.get_calc_notifications_covid(
             False, modelled_abs_detection_proportion_imported
         )
@@ -721,6 +729,7 @@ def build_model(params: dict) -> StratifiedModel:
             # Other
             "proportion_seropositive": outputs.calculate_proportion_seropositive,
         }
+        func_outputs.update(notification_by_age_funcs)
 
         # Derived outputs for the optimization project.
         if params.country.iso3 in OPTI_ISO3S:

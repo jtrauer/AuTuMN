@@ -29,14 +29,15 @@ HOSPITAL_STRATUM = [
 
 
 def get_calc_notifications_covid(
-    include_importation,
-    prop_detected_func,
+        include_importation,
+        prop_detected_func,
+        request_stratum=""
 ):
     def calculate_notifications_covid(
-        time_idx: int,
-        model: StratifiedModel,
-        compartment_values: np.ndarray,
-        derived_outputs: Dict[str, np.ndarray],
+            time_idx: int,
+            model: StratifiedModel,
+            compartment_values: np.ndarray,
+            derived_outputs: Dict[str, np.ndarray],
     ):
         """
         Returns the number of notifications for a given time.
@@ -46,7 +47,8 @@ def get_calc_notifications_covid(
         for output_name, output_values in derived_outputs.items():
             is_progress = "progressX" in output_name
             is_notify_stratum = any([stratum in output_name for stratum in NOTIFICATION_STRATUM])
-            if is_progress and is_notify_stratum:
+            is_request_stratum = request_stratum in output_name
+            if is_progress and is_notify_stratum and is_request_stratum:
                 notifications_count += output_values[time_idx]
 
         if include_importation:
