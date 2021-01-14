@@ -249,7 +249,9 @@ def add_standard_philippines_params(params, region):
 def add_standard_philippines_targets(targets):
 
     # Ignore notification values before day 100
-    notifications = ignore_calibration_target_before_date(targets["notifications"], 100)
+    # notifications = ignore_calibration_target_before_date(targets["notifications"], 100)
+    notifications = targets["notifications"]
+    time_weights = list(np.linspace(0.4, 1.0, len(targets["notifications"]["times"])))
 
     return [
         {
@@ -257,6 +259,7 @@ def add_standard_philippines_targets(targets):
             "years": notifications["times"],
             "values": notifications["values"],
             "loglikelihood_distri": "negative_binomial",
+            "time_weights": time_weights,
         },
         {
             "output_key": "icu_occupancy",
