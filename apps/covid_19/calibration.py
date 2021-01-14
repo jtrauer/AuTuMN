@@ -249,9 +249,17 @@ def add_standard_philippines_params(params, region):
 def add_standard_philippines_targets(targets):
 
     # Ignore notification values before day 100
+
+    # Jamie's approach used for the paper
     # notifications = ignore_calibration_target_before_date(targets["notifications"], 100)
     notifications = targets["notifications"]
-    time_weights = list(np.linspace(0.4, 1.0, len(targets["notifications"]["times"])))
+
+    # Alternative approach, didn't work particularly well
+    # time_weights = list(np.linspace(0.4, 1.0, len(targets["notifications"]["times"])))
+
+    # Let's try this:
+    # Make the time weights proportional to the values being calibrated against, plus emphasise the last 14
+    time_weights = notifications["values"][:-14] + [val * 5. for val in notifications["values"][-14:]]
 
     return [
         {
