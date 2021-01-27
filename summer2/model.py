@@ -1033,6 +1033,7 @@ class CompartmentalModel:
             self._exit_flows,
             self._entry_flows,
         ]
+        flow_tracker_times = self._flow_tracker_times
         flow_tracker_values = [
             self._transition_flow_values,
             self._function_flow_values,
@@ -1055,8 +1056,7 @@ class CompartmentalModel:
 
             if request_type == self._FLOW_REQUEST:
                 # User wants to track a set of flow rates over time.
-                times = self._flow_tracker_times
-                values = np.zeros(len(times))
+                values = np.zeros(len(flow_tracker_times))
                 for flows, flow_values in zip(flow_types, flow_tracker_values):
                     for flow_idx, flow in enumerate(flows):
                         is_matching_flow = (
@@ -1071,7 +1071,7 @@ class CompartmentalModel:
                             values += flow_values[flow_idx]
 
                 # Build a function to produce interpolated results
-                solved_func = interp1d(times, values)
+                solved_func = interp1d(flow_tracker_times, values)
                 # Populate output array with interpolated results
                 num_times = len(self.times)
                 interpolated_output = np.zeros(self.times.shape)
