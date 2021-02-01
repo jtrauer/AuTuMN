@@ -404,11 +404,8 @@ class ReplacementBirthFlow(BaseEntryFlow):
 
     def get_net_flow(
         self,
-        time: float,
-        compartments: List[Compartment],
         compartment_values: np.ndarray,
-        flows: List[BaseFlow],
-        flow_rates: np.ndarray,
+        time: float,
     ) -> float:
         return self.get_weight_value(time)
 
@@ -436,11 +433,8 @@ class ImportFlow(BaseEntryFlow):
 
     def get_net_flow(
         self,
-        time: float,
-        compartments: List[Compartment],
         compartment_values: np.ndarray,
-        flows: List[BaseFlow],
-        flow_rates: np.ndarray,
+        time: float,
     ) -> float:
         return self.get_weight_value(time)
 
@@ -459,11 +453,8 @@ class DeathFlow(BaseExitFlow):
 
     def get_net_flow(
         self,
-        time: float,
-        compartments: List[Compartment],
         compartment_values: np.ndarray,
-        flows: List[BaseFlow],
-        flow_rates: np.ndarray,
+        time: float,
     ) -> float:
         parameter_value = self.get_weight_value(time)
         population = compartment_values[self.source.idx]
@@ -487,11 +478,8 @@ class FractionalFlow(BaseTransitionFlow):
 
     def get_net_flow(
         self,
-        time: float,
-        compartments: List[Compartment],
         compartment_values: np.ndarray,
-        flows: List[BaseFlow],
-        flow_rates: np.ndarray,
+        time: float,
     ) -> float:
         parameter_value = self.get_weight_value(time)
         population = compartment_values[self.source.idx]
@@ -514,11 +502,8 @@ class SojournFlow(BaseTransitionFlow):
 
     def get_net_flow(
         self,
-        time: float,
-        compartments: List[Compartment],
         compartment_values: np.ndarray,
-        flows: List[BaseFlow],
-        flow_rates: np.ndarray,
+        time: float,
     ) -> float:
         parameter_value = self.get_weight_value(time)
         population = compartment_values[self.source.idx]
@@ -575,11 +560,8 @@ class BaseInfectionFlow(BaseTransitionFlow):
 
     def get_net_flow(
         self,
-        time: float,
-        compartments: List[Compartment],
         compartment_values: np.ndarray,
-        flows: List[BaseFlow],
-        flow_rates: np.ndarray,
+        time: float,
     ) -> float:
         multiplier = self.find_infectious_multiplier(self.source, self.dest)
         parameter_value = self.get_weight_value(time)

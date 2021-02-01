@@ -948,9 +948,11 @@ class CompartmentalModel:
 
         # Record the flow rate for each flow.
         for flow_idx, flow in enumerate(self._flows):
-            net_flow = flow.get_net_flow(
-                time, self.compartments, compartment_values, self._flows, flow_rates
-            )
+            # if isinstance(flow, flows.FunctionFlow):
+            # Evaluate function flows later.
+            # continue
+
+            net_flow = flow.get_net_flow(compartment_values, time)
             if flow.source:
                 flow_rates[flow_idx][flow.source.idx] = -net_flow
                 flow_rates_summed[flow.source.idx] -= net_flow
@@ -959,12 +961,25 @@ class CompartmentalModel:
                 flow_rates[flow_idx][flow.dest.idx] = net_flow
                 flow_rates_summed[flow.dest.idx] += net_flow
 
-            if type(flow) is flows.DeathFlow:
+            if isinstance(flow, flows.DeathFlow):
                 # Track total deaths for any later birth replacement flows.
                 self._total_deaths += net_flow
 
             # Track this flow's flow-rates at this point in time for derived outputs.
             self._flow_tracker_values[flow_tracker_idx][flow_idx] = net_flow
+
+        # for flow_idx, flow in enumerate(self._flows):
+        #     if not isinstance(flow, flows.FunctionFlow):
+        #         # Only evaluate function flows here.
+        #         continue
+
+        #     net_flow = flow.get_net_flow(
+        #         self.compartments, compartment_values, self._flows, flow_rates, time
+        #     )
+        #     flow_rates_summed[flow.source.idx] -= net_flow
+        #     flow_rates_summed[flow.dest.idx] += net_flow
+        #     # Track this flow's flow-rates at this point in time for derived outputs.
+        #     self._flow_tracker_values[flow_tracker_idx][flow_idx] = net_flow
 
         return flow_rates_summed
 
