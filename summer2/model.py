@@ -9,6 +9,7 @@ from functools import lru_cache
 import networkx
 import numpy as np
 from scipy.interpolate import interp1d
+from numba import jit
 
 import summer2.flows as flows
 from summer2.compartment import Compartment
@@ -939,21 +940,24 @@ class CompartmentalModel:
         # describes the flow rates between each compartment, and the contributrion of each flow.
         num_comps = len(comp_vals)
         num_flows = len(self._flows)
-        flow_rates = np.zeros((num_comps, num_flows))
+        flow_rates = np.zeros((num_flows, num_comps))
+        flow_rates_summed = np.zeros(num_comps)
 
         self._prepare_time_step(time, comp_vals)
         flow_tracker_idx = len(self._flow_tracker_times) - 1
 
         # Record the flow rate for each flow.
         for flow_idx, flow in enumerate(self._flows):
-            net_flow = flow.get_net_flow(compartment_values, time)
-            # TODO: Apply inter-compartmental function flows.
-
+            net_flow = flow.get_net_flow(
+                time, self.compartments, compartment_values, self._flows, flow_rates
+            )
             if flow.source:
-                flow_rates[flow.source.idx][flow_idx] = -net_flow
+                flow_rates[flow_idx][flow.source.idx] = -net_flow
+                flow_rates_summed[flow.source.idx] -= net_flow
 
             if flow.dest:
-                flow_rates[flow.dest.idx][flow_idx] = net_flow
+                flow_rates[flow_idx][flow.dest.idx] = net_flow
+                flow_rates_summed[flow.dest.idx] += net_flow
 
             if type(flow) is flows.DeathFlow:
                 # Track total deaths for any later birth replacement flows.
@@ -962,8 +966,7 @@ class CompartmentalModel:
             # Track this flow's flow-rates at this point in time for derived outputs.
             self._flow_tracker_values[flow_tracker_idx][flow_idx] = net_flow
 
-        # Sum accross flows to get the net flow rate for each compartment.
-        return flow_rates.sum(axis=1)
+        return flow_rates_summed
 
     def _get_mixing_matrix(self, time: float) -> np.ndarray:
         """

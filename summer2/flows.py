@@ -104,7 +104,14 @@ class BaseFlow(ABC):
         self.adjustments = overwrites + consts + funcs
 
     @abstractmethod
-    def get_net_flow(self, compartment_values: np.ndarray, time: float) -> float:
+    def get_net_flow(
+        self,
+        time: float,
+        compartments: List[Compartment],
+        compartment_values: np.ndarray,
+        flows: list,
+        flow_rates: np.ndarray,
+    ) -> float:
         """
         Returns the net flow value at a given time.
         """
@@ -395,7 +402,14 @@ class ReplacementBirthFlow(BaseEntryFlow):
 
     _is_birth_flow = True
 
-    def get_net_flow(self, compartment_values, time):
+    def get_net_flow(
+        self,
+        time: float,
+        compartments: List[Compartment],
+        compartment_values: np.ndarray,
+        flows: List[BaseFlow],
+        flow_rates: np.ndarray,
+    ) -> float:
         return self.get_weight_value(time)
 
 
@@ -420,7 +434,14 @@ class ImportFlow(BaseEntryFlow):
 
     _is_birth_flow = False
 
-    def get_net_flow(self, compartment_values, time):
+    def get_net_flow(
+        self,
+        time: float,
+        compartments: List[Compartment],
+        compartment_values: np.ndarray,
+        flows: List[BaseFlow],
+        flow_rates: np.ndarray,
+    ) -> float:
         return self.get_weight_value(time)
 
 
@@ -436,7 +457,14 @@ class DeathFlow(BaseExitFlow):
 
     """
 
-    def get_net_flow(self, compartment_values, time):
+    def get_net_flow(
+        self,
+        time: float,
+        compartments: List[Compartment],
+        compartment_values: np.ndarray,
+        flows: List[BaseFlow],
+        flow_rates: np.ndarray,
+    ) -> float:
         parameter_value = self.get_weight_value(time)
         population = compartment_values[self.source.idx]
         flow_rate = parameter_value * population
@@ -457,7 +485,14 @@ class FractionalFlow(BaseTransitionFlow):
 
     """
 
-    def get_net_flow(self, compartment_values, time):
+    def get_net_flow(
+        self,
+        time: float,
+        compartments: List[Compartment],
+        compartment_values: np.ndarray,
+        flows: List[BaseFlow],
+        flow_rates: np.ndarray,
+    ) -> float:
         parameter_value = self.get_weight_value(time)
         population = compartment_values[self.source.idx]
         return parameter_value * population
@@ -477,7 +512,14 @@ class SojournFlow(BaseTransitionFlow):
 
     """
 
-    def get_net_flow(self, compartment_values, time):
+    def get_net_flow(
+        self,
+        time: float,
+        compartments: List[Compartment],
+        compartment_values: np.ndarray,
+        flows: List[BaseFlow],
+        flow_rates: np.ndarray,
+    ) -> float:
         parameter_value = self.get_weight_value(time)
         population = compartment_values[self.source.idx]
         return population / parameter_value
@@ -499,12 +541,13 @@ class FunctionFlow(BaseTransitionFlow):
 
     def get_net_flow(
         self,
+        time: float,
         compartments: List[Compartment],
         compartment_values: np.ndarray,
+        flows: List[BaseFlow],
         flow_rates: np.ndarray,
-        time: float,
-    ):
-        flow_rate = self.param(compartments, compartment_values, flow_rates, time)
+    ) -> float:
+        flow_rate = self.param(time, compartments, compartment_values, flows, flow_rates)
         for adjustment in self.adjustments:
             flow_rate = adjustment.get_new_value(flow_rate, time)
 
@@ -530,7 +573,14 @@ class BaseInfectionFlow(BaseTransitionFlow):
         self.param = param
         self.find_infectious_multiplier = find_infectious_multiplier
 
-    def get_net_flow(self, compartment_values, time):
+    def get_net_flow(
+        self,
+        time: float,
+        compartments: List[Compartment],
+        compartment_values: np.ndarray,
+        flows: List[BaseFlow],
+        flow_rates: np.ndarray,
+    ) -> float:
         multiplier = self.find_infectious_multiplier(self.source, self.dest)
         parameter_value = self.get_weight_value(time)
         population = compartment_values[self.source.idx]
